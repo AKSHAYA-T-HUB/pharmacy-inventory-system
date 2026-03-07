@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Pharmacy System</title>
+
+<style>
+
+body{
+    margin:0;
+    font-family:Arial, sans-serif;
+    background:#f4f7fb;
+}
+
+/* NAVBAR */
+
+.navbar{
+    background:#2c3e50;
+    padding:15px;
+}
+
+.navbar a{
+    color:white;
+    text-decoration:none;
+    margin-right:20px;
+    font-weight:500;
+}
+
+.navbar a:hover{
+    color:#74b9ff;
+}
+
+/* PAGE CONTAINER */
+
+.container{
+    padding:40px;
+}
+
+/* CARDS */
+
+.card{
+    background:white;
+    padding:25px;
+    border-radius:10px;
+    box-shadow:0 4px 12px rgba(0,0,0,0.08);
+}
+
+/* TABLE */
+
+table{
+    border-collapse:collapse;
+    width:100%;
+    background:white;
+}
+
+th{
+    background:#e8f0ff;
+    padding:12px;
+}
+
+td{
+    padding:10px;
+    border-bottom:1px solid #eee;
+}
+
+/* BUTTONS */
+
+button{
+    background:#27ae60;
+    border:none;
+    padding:10px 18px;
+    color:white;
+    border-radius:6px;
+    cursor:pointer;
+}
+
+button:hover{
+    background:#219150;
+}
+
+/* INPUT */
+
+input, select{
+    padding:10px;
+    width:100%;
+    margin-top:10px;
+    border-radius:6px;
+    border:1px solid #ccc;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="navbar">
+
+<a href="/">Home</a>
+<a href="/medicines">Medicines</a>
+<a href="/add-medicine">Add Medicine</a>
+<a href="/stock">Stock</a>
+<a href="/dashboard">Dashboard</a>
+
+</div>
+
+<div class="container">
+
+{% block content %}
+
+{% endblock %}
+
+</div>
+
+</body>
+</html>

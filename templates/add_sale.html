@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="card" style="max-width:500px;margin:auto;">
+
+<h2 style="text-align:center;">Add Sale</h2>
+
+<form method="POST">
+
+<label>Medicine</label><br>
+<select name="medicine_id" required>
+{% for med in medicines %}
+<option value="{{ med[0] }}">{{ med[1] }}</option>
+{% endfor %}
+</select>
+
+<br><br>
+
+<label>Quantity Sold</label><br>
+<input type="number" name="quantity" placeholder="Enter quantity sold" required>
+
+<br><br>
+
+<button type="submit">Submit Sale</button>
+
+</form>
+
+</div>
+
+<br>
+
+<div style="text-align:center;">
+<a href="/" style="
+background:#3498db;
+color:white;
+padding:10px 20px;
+border-radius:6px;
+text-decoration:none;
+">Back to Home</a>
+</div>
+
+{% endblock %}

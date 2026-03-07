@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Pharmacy Dashboard</title>
+    <style>
+        body { 
+            font-family: Arial; 
+            background:#f4f6f9; 
+            text-align:center; 
+            margin:0;
+        }
+
+        h1 { 
+            margin-top:30px; 
+        }
+
+        .card-container {
+            display:flex;
+            justify-content:center;
+            gap:30px;
+            margin-top:40px;
+            flex-wrap:wrap;
+        }
+
+        .card {
+            background:white;
+            padding:30px;
+            width:200px;
+            border-radius:10px;
+            box-shadow:0px 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .card h2 { 
+            margin:0; 
+            font-size:18px;
+        }
+
+        .card p { 
+            font-size:22px; 
+            font-weight:bold; 
+            margin-top:10px;
+        }
+
+        .chart-section {
+            margin-top:60px;
+        }
+
+        img {
+            width:60%;
+            margin-top:20px;
+            border-radius:10px;
+            box-shadow:0px 4px 10px rgba(0,0,0,0.1);
+        }
+
+        a {
+            display:inline-block;
+            margin-top:40px;
+            text-decoration:none;
+            padding:10px 20px;
+            background:#3498db;
+            color:white;
+            border-radius:5px;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Pharmacy Warehouse Dashboard</h1>
+
+<div class="card-container">
+    <div class="card">
+        <h2>Total Medicines</h2>
+        <p>{{ total_medicines }}</p>
+    </div>
+
+    <div class="card">
+        <h2>Low Stock</h2>
+        <p>{{ low_stock }}</p>
+    </div>
+
+    <div class="card">
+        <h2>Expiring Soon</h2>
+        <p>{{ expiring_soon }}</p>
+    </div>
+
+    <div class="card">
+        <h2>Total Sales</h2>
+        <p>{{ total_sales }}</p>
+    </div>
+</div>
+
+<!-- Sales Chart Section -->
+<div class="chart-section">
+    <h2>Sales Chart</h2>
+    <img src="/dashboard-chart" alt="Sales Chart">
+</div>
+
+<a href="/">Back to Home</a>
+
+<style>
+    body { 
+        font-family: Arial; 
+        background: #f9fbfd;   /* very light blue background */
+        text-align: center; 
+        margin: 0;
+    }
+
+    h1 { 
+        margin-top: 30px; 
+        color: #34495e;
+    }
+
+    .card-container {
+        display: flex;
+        justify-content: center;
+        gap: 30px;
+        margin-top: 40px;
+        flex-wrap: wrap;
+    }
+
+    .card {
+        padding: 30px;
+        width: 200px;
+        border-radius: 12px;
+        box-shadow: 0px 4px 10px rgba(0,0,0,0.08);
+        transition: 0.2s;
+    }
+
+    .card:hover {
+        transform: scale(1.03);
+    }
+
+    /* Light pastel colors */
+    .card:nth-child(1) {
+        background: #e3f2fd;   /* light blue */
+    }
+
+    .card:nth-child(2) {
+        background: #ffebee;   /* light red */
+    }
+
+    .card:nth-child(3) {
+        background: #fff8e1;   /* light yellow */
+    }
+
+    .card:nth-child(4) {
+        background: #e8f5e9;   /* light green */
+    }
+
+    .card h2 { 
+        margin: 0; 
+        font-size: 18px;
+        color: #2c3e50;
+    }
+
+    .card p { 
+        font-size: 24px; 
+        font-weight: bold; 
+        margin-top: 10px;
+        color: #34495e;
+    }
+
+    .chart-section {
+        margin-top: 60px;
+    }
+
+    img {
+        width: 60%;
+        margin-top: 20px;
+        border-radius: 10px;
+        box-shadow: 0px 4px 10px rgba(0,0,0,0.1);
+    }
+
+    a {
+        display: inline-block;
+        margin-top: 40px;
+        text-decoration: none;
+        padding: 10px 20px;
+        background: #90caf9;
+        color: #2c3e50;
+        border-radius: 8px;
+        font-weight: bold;
+    }
+
+    a:hover {
+        background: #64b5f6;
+    }
+</style>
+
+</body>
+</html>

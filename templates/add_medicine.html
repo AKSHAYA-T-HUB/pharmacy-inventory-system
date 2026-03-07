@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="card">
+
+<h2>Add Medicine</h2>
+
+<form method="POST">
+
+<input type="text" name="name" placeholder="Medicine Name" required>
+
+<input type="text" name="category" placeholder="Category" required>
+
+<input type="date" name="expiry_date" required>
+
+<input type="number" name="price" step="0.01" placeholder="Price">
+
+<br><br>
+
+<button type="submit">Add Medicine</button>
+
+</form>
+
+</div>
+
+{% endblock %}
