@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="fade-in" style="max-width: 600px; margin: 0 auto;">
+    <div class="mb-8">
+        <h1 class="text-2xl font-bold">Update Inventory</h1>
+        <p class="text-muted">Record new stock arrivals</p>
+    </div>
+
+    <div class="card">
+        <form action="{{ url_for('inventory.add_stock') }}" method="POST">
+            <div class="form-group">
+                <label>Select Medicine</label>
+                <select name="medicine_id" class="form-control" required>
+                    {% for med in medicines %}
+                    <option value="{{ med.id }}">{{ med.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label>Quantity to Add</label>
+                <input type="number" name="quantity" class="form-control" placeholder="0" min="1" required>
+            </div>
+            
+            <div style="margin-top: 2rem; display: flex; gap: 1rem;">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Add to Stock
+                </button>
+                <a href="{{ url_for('inventory.view_stock') }}" class="btn" style="background: #f1f5f9; color: #475569;">Back</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

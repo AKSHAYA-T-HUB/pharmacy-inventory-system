@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RetailFlow | Inventory Optimization</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-50">
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <i class="fas fa-pills logo-icon"></i>
+                <span class="logo-text">RetailFlow</span>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="{{ url_for('main.index') }}" class="nav-item {{ 'active' if request.endpoint == 'main.index' }}">
+                    <i class="fas fa-th-large"></i> <span>Dashboard</span>
+                </a>
+                <a href="{{ url_for('inventory.list_medicines') }}" class="nav-item {{ 'active' if 'inventory.list_medicines' in request.endpoint }}">
+                    <i class="fas fa-pills"></i> <span>Medicines</span>
+                </a>
+                <a href="{{ url_for('inventory.view_stock') }}" class="nav-item {{ 'active' if 'inventory.view_stock' in request.endpoint }}">
+                    <i class="fas fa-boxes-stacked"></i> <span>Stock Management</span>
+                </a>
+                <a href="{{ url_for('sales.add_sale') }}" class="nav-item {{ 'active' if 'sales.add_sale' in request.endpoint }}">
+                    <i class="fas fa-cart-shopping"></i> <span>Sales Terminal</span>
+                </a>
+                <div class="nav-divider"></div>
+                <a href="{{ url_for('auth.logout') }}" class="nav-item logout">
+                    <i class="fas fa-sign-out-alt"></i> <span>Logout</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-bar">
+                <div class="search-bar">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="globalSearch" placeholder="Search inventory..." autocomplete="off">
+                </div>
+                <div class="user-profile">
+                    <span class="notification-badge"><i class="fas fa-bell"></i></span>
+                    <div class="avatar">AD</div>
+                    <span class="user-name">Administrator</span>
+                </div>
+            </header>
+
+            <div class="content-body">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }} fade-in">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Global Search Logic
+        const searchInput = document.getElementById('globalSearch');
+        
+        searchInput.addEventListener('input', function(e) {
+            const query = e.target.value.toLowerCase();
+            const tableRows = document.querySelectorAll('table tbody tr');
+            
+            if (tableRows.length > 0) {
+                // Live filter current table
+                tableRows.forEach(row => {
+                    const text = row.innerText.toLowerCase();
+                    row.style.display = text.includes(query) ? '' : 'none';
+                });
+            }
+        });
+
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                const query = e.target.value;
+                const currentEndpoint = "{{ request.endpoint }}";
+                
+                // If not on a list page, redirect to medicines with search
+                if (!currentEndpoint.includes('list_medicines') && !currentEndpoint.includes('view_stock')) {
+                    window.location.href = "{{ url_for('inventory.list_medicines') }}?search=" + encodeURIComponent(query);
+                }
+            }
+        });
+
+        // Initialize search if query param exists
+        window.addEventListener('DOMContentLoaded', (event) => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const searchParam = urlParams.get('search');
+            if (searchParam) {
+                searchInput.value = searchParam;
+                searchInput.dispatchEvent(new Event('input'));
+            }
+        });
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>
