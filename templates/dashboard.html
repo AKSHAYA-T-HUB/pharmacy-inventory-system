@@ -1,0 +1,251 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    .kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 24px;
+        margin-bottom: 32px;
+    }
+    
+    .kpi-card {
+        padding: 24px;
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+    
+    .kpi-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+    
+    .kpi-info { display: flex; flex-direction: column; }
+    .kpi-value { font-size: 1.5rem; font-weight: 700; color: var(--text-dark); }
+    .kpi-label { font-size: 0.85rem; color: var(--text-gray); font-weight: 500; }
+    
+    .icon-products { background: #eff0fe; color: var(--primary); }
+    .icon-alerts { background: #fffbeb; color: var(--warning); }
+    .icon-expiring { background: #fef2f2; color: var(--danger); }
+    .icon-sales { background: #ecfdf5; color: var(--success); }
+    
+    .panels-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 24px;
+    }
+    
+    .panel {
+        background: #ffffff;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .panel-header {
+        padding: 24px 24px 16px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid transparent;
+    }
+    
+    .panel-title {
+        font-weight: 600;
+        color: var(--text-dark);
+        font-size: 1.1rem;
+    }
+    
+    .panel-action {
+        color: var(--text-gray);
+        cursor: pointer;
+    }
+    
+    .panel-content {
+        padding: 0 24px 24px;
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .chart-image {
+        max-width: 100%;
+        height: auto;
+    }
+</style>
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Executive Dashboard</h1>
+        <p class="page-subtitle">Real-time inventory insights and sales performance</p>
+    </div>
+    <a href="/export-report" class="btn btn-outline" style="color: var(--primary); font-weight: 600;">
+        <i class="fa-solid fa-file-arrow-down"></i> Download Report
+    </a>
+</div>
+
+<div class="kpi-grid">
+    <div class="card kpi-card">
+        <div class="kpi-icon icon-products">
+            <i class="fa-solid fa-pills"></i>
+        </div>
+        <div class="kpi-info">
+            <span class="kpi-value">{{ total_medicines }}</span>
+            <span class="kpi-label">Total Products</span>
+        </div>
+    </div>
+    
+    <div class="card kpi-card">
+        <div class="kpi-icon icon-alerts">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+        </div>
+        <div class="kpi-info">
+            <span class="kpi-value">{{ low_stock }}</span>
+            <span class="kpi-label">Low Stock Alerts</span>
+        </div>
+    </div>
+    
+    <div class="card kpi-card">
+        <div class="kpi-icon icon-expiring">
+            <i class="fa-solid fa-hourglass-end"></i>
+        </div>
+        <div class="kpi-info">
+            <span class="kpi-value">{{ expiring_soon }}</span>
+            <span class="kpi-label">Expiring Soon</span>
+        </div>
+    </div>
+    
+    <div class="card kpi-card">
+        <div class="kpi-icon icon-sales">
+            <i class="fa-solid fa-chart-line"></i>
+        </div>
+        <div class="kpi-info">
+            <span class="kpi-value">{{ total_sales }}</span>
+            <span class="kpi-label">Total Sales Units</span>
+        </div>
+    </div>
+</div>
+
+<div class="panels-grid">
+    <div class="panel">
+        <div class="panel-header">
+            <div class="panel-title">Sales Performance</div>
+            <i class="fa-solid fa-ellipsis-vertical panel-action"></i>
+        </div>
+        <div class="panel-content" style="padding: 20px; height: 360px;">
+            <canvas id="salesChart"></canvas>
+        </div>
+    </div>
+    
+    <div class="panel">
+        <div class="panel-header">
+            <div class="panel-title">Inventory Health</div>
+            <i class="fa-solid fa-ellipsis-vertical panel-action"></i>
+        </div>
+        <div class="panel-content" style="padding: 20px; height: 360px; display: flex; justify-content: center; align-items: center;">
+            <canvas id="inventoryChart" style="max-height: 100%;"></canvas>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener("DOMContentLoaded", async function() {
+        // Fetch and render Sales Performance Chart
+        try {
+            const salesRes = await fetch('/api/dashboard-chart');
+            const salesData = await salesRes.json();
+            
+            if (salesData.labels && salesData.labels.length > 0) {
+                const ctxSales = document.getElementById('salesChart').getContext('2d');
+                new Chart(ctxSales, {
+                    type: 'bar',
+                    data: {
+                        labels: salesData.labels,
+                        datasets: [{
+                            label: 'Total Sold',
+                            data: salesData.data,
+                            backgroundColor: '#6366f1',
+                            borderRadius: 4,
+                            barPercentage: 0.6
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: { backgroundColor: '#1e293b', padding: 12 }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grid: { color: 'rgba(0, 0, 0, 0.05)' },
+                                border: { display: false }
+                            },
+                            x: {
+                                grid: { display: false },
+                                border: { display: false },
+                                ticks: { maxRotation: 45, minRotation: 45 }
+                            }
+                        }
+                    }
+                });
+            } else {
+                document.getElementById('salesChart').parentElement.innerHTML = '<p style="color:var(--text-gray);">No Sales Data Available</p>';
+            }
+        } catch (e) {
+            console.error('Failed to load sales chart', e);
+        }
+        
+        // Fetch and render Inventory Health Chart
+        try {
+            const invRes = await fetch('/api/inventory-chart');
+            const invData = await invRes.json();
+            
+            if (invData.labels && invData.labels.length > 0) {
+                const ctxInv = document.getElementById('inventoryChart').getContext('2d');
+                new Chart(ctxInv, {
+                    type: 'doughnut',
+                    data: {
+                        labels: invData.labels,
+                        datasets: [{
+                            data: invData.data,
+                            backgroundColor: invData.colors,
+                            borderWidth: 0,
+                            hoverOffset: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '70%',
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                                labels: { usePointStyle: true, boxWidth: 8, padding: 20 }
+                            },
+                            tooltip: { backgroundColor: '#1e293b', padding: 12 }
+                        }
+                    }
+                });
+            } else {
+                document.getElementById('inventoryChart').parentElement.innerHTML = '<p style="color:var(--text-gray);">No Stock Data</p>';
+            }
+        } catch (e) {
+            console.error('Failed to load inventory chart', e);
+        }
+    });
+</script>
+{% endblock %}

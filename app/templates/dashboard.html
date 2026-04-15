@@ -1,0 +1,190 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="fade-in">
+    <div class="header-section mb-2" style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <h1 class="text-2xl font-bold">Executive Dashboard</h1>
+            <p class="text-muted">Real-time inventory insights and sales performance</p>
+        </div>
+        <a href="{{ url_for('inventory.export_csv') }}" class="btn" style="background: white; border: 1px solid #e2e8f0;">
+            <i class="fas fa-file-export"></i> Download Report
+        </a>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon blue">
+                <i class="fas fa-pills"></i>
+            </div>
+            <div class="stat-info">
+                <span class="value">{{ total_medicines }}</span>
+                <span class="label">Total Products</span>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon yellow">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <div class="stat-info">
+                <span class="value">{{ low_stock }}</span>
+                <span class="label">Low Stock Alerts</span>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon red">
+                <i class="fas fa-hourglass-half"></i>
+            </div>
+            <div class="stat-info">
+                <span class="value">{{ expiring_soon }}</span>
+                <span class="label">Expiring Soon</span>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon green">
+                <i class="fas fa-chart-line"></i>
+            </div>
+            <div class="stat-info">
+                <span class="value">{{ total_sales }}</span>
+                <span class="label">Total Sales Units</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="grid grid-cols-2 gap-6 mb-8" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Sales Performance</h3>
+                <i class="fas fa-ellipsis-v text-muted"></i>
+            </div>
+            <canvas id="salesChart" height="200"></canvas>
+        </div>
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Inventory Health</h3>
+                <i class="fas fa-ellipsis-v text-muted"></i>
+            </div>
+            <canvas id="inventoryChart" height="200"></canvas>
+        </div>
+    </div>
+
+    <!-- Low Stock Suggestions -->
+    <div class="card mb-8">
+        <div class="card-header">
+            <h3 class="card-title">Restock Recommendations (AI-Powered)</h3>
+            <button class="btn btn-primary btn-sm" onclick="retrainModel()">
+                <i class="fas fa-sync"></i> Re-train Model
+            </button>
+        </div>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Medicine</th>
+                        <th>Current Stock</th>
+                        <th>Risk Level</th>
+                        <th>Probability</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="recommendationsTable">
+                    <tr>
+                        <td colspan="5" style="text-align: center;">Loading AI recommendations...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Fetch and render charts
+    fetch('/api/analytics/sales-by-medicine')
+        .then(res => res.json())
+        .then(data => {
+            const ctx = document.getElementById('salesChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.map(d => d.name),
+                    datasets: [{
+                        label: 'Units Sold',
+                        data: data.map(d => d.value),
+                        backgroundColor: '#4f46e5',
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: false } }
+                }
+            });
+        });
+
+    // Fetch and render Inventory Health
+    fetch('/api/analytics/recommendations')
+        .then(res => res.json())
+        .then(data => {
+            const healthyCount = 100 - (data.length * 5); // Simple logic for health score
+            const warningCount = data.filter(d => d.prediction === 'Stable').length;
+            const criticalCount = data.filter(d => d.prediction === 'High Risk').length;
+
+            const invCtx = document.getElementById('inventoryChart').getContext('2d');
+            new Chart(invCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Healthy', 'Low/Warning', 'Critical'],
+                    datasets: [{
+                        data: [healthyCount, warningCount, criticalCount],
+                        backgroundColor: ['#10b981', '#f59e0b', '#ef4444'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    cutout: '70%'
+                }
+            });
+
+            // Populate recommendations table
+            const table = document.getElementById('recommendationsTable');
+            if (data.length === 0) {
+                table.innerHTML = '<tr><td colspan="5" style="text-align: center;">✅ All stock levels are healthy. No recommendations at this time.</td></tr>';
+                return;
+            }
+
+            table.innerHTML = data.map(item => `
+                <tr>
+                    <td>${item.name}</td>
+                    <td>${item.quantity}</td>
+                    <td><span class="badge ${item.prediction === 'High Risk' ? 'badge-danger' : 'badge-warning'}">${item.prediction}</span></td>
+                    <td>${item.probability}</td>
+                    <td><button class="btn btn-primary btn-sm" onclick="alert('Order request sent for ${item.name}')">Restock</button></td>
+                </tr>
+            `).join('');
+        });
+
+    function retrainModel() {
+        const btn = event.currentTarget;
+        const originalHtml = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Training...';
+        btn.disabled = true;
+
+        fetch('/ml/train')
+            .then(res => res.json())
+            .then(data => {
+                alert('Success: AI Model re-trained with current data.\nAccuracy: ' + (data.metrics.accuracy * 100).toFixed(2) + '%');
+                location.reload();
+            })
+            .catch(err => {
+                alert('Error re-training model');
+                btn.innerHTML = originalHtml;
+                btn.disabled = false;
+            });
+    }
+</script>
+{% endblock %}

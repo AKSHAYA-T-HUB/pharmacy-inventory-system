@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Stock Management</h1>
+        <p class="page-subtitle">Real-time inventory levels and tracking</p>
+    </div>
+    <div style="display: flex; gap: 12px;">
+        <a href="/export-stock" class="btn btn-outline" style="font-weight: 600; text-decoration: none;">
+            <i class="fa-solid fa-download" style="margin-right: 4px;"></i> Export CSV
+        </a>
+        <a href="/add-stock" class="btn btn-primary" style="font-weight: 600;">
+            <i class="fa-solid fa-boxes-stacked" style="margin-right: 4px;"></i> Update Stock
+        </a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th style="font-weight: 500;">Medicine</th>
+                    <th style="font-weight: 500;">Current Quantity</th>
+                    <th style="font-weight: 500;">Health Status</th>
+                    <th style="font-weight: 500;">Last Updated</th>
+                    <th style="font-weight: 500;">AI Prediction</th>
+                    <th style="font-weight: 500; text-align: center;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if stock_data %}
+                    {% for item in stock_data %}
+                        {% set qty_int = item[2]|int %}
+                        <tr>
+                            <td style="color: var(--text-dark); font-weight: 500;">{{ item[1] }}</td>
+                            <td>
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <span style="font-size: 0.9rem; color: var(--text-gray); min-width: 60px;">{{ item[2] }} units</span>
+                                    <div style="background: var(--border); width: 80px; height: 4px; border-radius: 2px; overflow: hidden;">
+                                        <!-- Mock progress % calculation (if max is 200 units) -->
+                                        {% set percent = (qty_int / 150) * 100 %}
+                                        {% set pcolor = "var(--success)" %}
+                                        {% if qty_int == 0 %}{% set pcolor = "var(--border)" %}{% set percent = 100 %}
+                                        {% elif qty_int <= 20 %}{% set pcolor = "var(--danger)" %}
+                                        {% elif qty_int <= 50 %}{% set pcolor = "var(--warning)" %}{% endif %}
+                                        <div style="width: {{ percent if percent <= 100 else 100 }}%; height: 100%; background: {{ pcolor }};"></div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                {% if qty_int == 0 %}
+                                    <span class="status-pill pill-danger" style="font-size: 0.75rem;">Critical</span>
+                                {% elif qty_int <= 20 %}
+                                    <span class="status-pill pill-danger" style="font-size: 0.75rem;">Critical</span>
+                                {% elif qty_int <= 50 %}
+                                    <span class="status-pill pill-warning" style="font-size: 0.75rem;">Low</span>
+                                {% else %}
+                                    <span class="status-pill pill-success" style="font-size: 0.75rem;">Healthy</span>
+                                {% endif %}
+                            </td>
+                            <td style="color: var(--text-dark); font-size: 0.9rem;">{{ item[3] }}</td>
+                            <td>
+                                <a href="/predict/{{ item[0] }}" class="btn" style="background: var(--primary-light); color: var(--primary); font-size: 0.8rem; padding: 6px 12px;">
+                                    <i class="fa-solid fa-circle-half-stroke" style="font-size: 0.8em; margin-right: 4px;"></i> Predict
+                                </a>
+                            </td>
+                            <td style="text-align: center;">
+                                <a href="/add-sale" class="btn-icon-light" style="border: none; background: transparent; color: var(--primary);" title="To Sales">
+                                    <i class="fa-solid fa-cart-shopping"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 48px; color: var(--text-gray);">
+                            No stock recorded.
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

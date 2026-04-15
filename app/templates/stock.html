@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="fade-in">
+    <div class="card-header" style="margin-bottom: 2rem;">
+        <div>
+            <h1 class="text-2xl font-bold">Stock Management</h1>
+            <p class="text-muted">Real-time inventory levels and tracking</p>
+        </div>
+        <div style="display: flex; gap: 1rem;">
+            <a href="{{ url_for('inventory.export_csv') }}" class="btn" style="background: white; border: 1px solid #e2e8f0;"><i class="fas fa-download"></i> Export CSV</a>
+            <a href="{{ url_for('inventory.add_stock') }}" class="btn btn-primary">
+                <i class="fas fa-boxes-packing"></i> Update Stock
+            </a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Medicine</th>
+                        <th>Current Quantity</th>
+                        <th>Health Status</th>
+                        <th>Last Updated</th>
+                        <th>AI Prediction</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for med_name, qty, last_updated, med_id in stock_data %}
+                    <tr>
+                        <td class="font-bold">{{ med_name }}</td>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <span>{{ qty }} units</span>
+                                <div style="width: 60px; height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden;">
+                                    <div style="width: {{ [qty, 100]|min }}%; height: 100%; background: {% if qty < 20 %}#ef4444{% elif qty < 50 %}#f59e0b{% else %}#10b981{% endif %};"></div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            {% if qty < 20 %}
+                                <span class="badge badge-danger">Critical</span>
+                            {% elif qty < 50 %}
+                                <span class="badge badge-warning">Low</span>
+                            {% else %}
+                                <span class="badge badge-success">Healthy</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ last_updated }}</td>
+                        <td id="pred-{{ med_id }}">
+                            <button class="btn btn-sm" onclick="predictStock('{{ med_id }}')" style="background: #e0e7ff; color: #4338ca;">
+                                <i class="fas fa-brain"></i> Predict
+                            </button>
+                        </td>
+                        <td>
+                             <a href="{{ url_for('sales.add_sale', medicine_id=med_id) }}" class="btn btn-sm" title="Quick Sale"><i class="fas fa-shopping-cart"></i></a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function predictStock(medId) {
+        const cell = document.getElementById(`pred-${medId}`);
+        cell.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        
+        fetch(`/ml/predict/${medId}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.error) {
+                    cell.innerHTML = `<span class="badge badge-danger">Error: ${data.error}</span>`;
+                } else {
+                    const badgeClass = data.prediction === 'High Risk' ? 'badge-danger' : 'badge-success';
+                    cell.innerHTML = `<span class="badge ${badgeClass}">${data.prediction} (${Math.round(data.probability * 100)}%)</span>`;
+                }
+            })
+            .catch(err => {
+                cell.innerHTML = '<span class="badge badge-danger">Error</span>';
+            });
+    }
+</script>
+{% endblock %}

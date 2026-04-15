@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-header" style="justify-content: center; text-align: center; border-bottom: none; margin-bottom: 32px;">
+    <div>
+        <h1 class="page-title">Sales Terminal</h1>
+        <p class="page-subtitle">Process a new transaction</p>
+    </div>
+</div>
+
+<div class="card" style="max-width: 500px; margin: 0 auto; padding: 24px;">
+    <form method="POST">
+        <div style="margin-bottom: 24px;">
+            <label class="form-label" style="font-weight: 500;">Select Medicine</label>
+            <select name="medicine_id" class="form-control" style="cursor: pointer; padding: 12px 16px; background: #ffffff;" required>
+                {% for med in medicines %}
+                    <option value="{{ med[0] }}">{{ med[1] }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div style="margin-bottom: 24px;">
+            <label class="form-label" style="font-weight: 500;">Quantity Sold</label>
+            <input type="number" name="quantity" class="form-control" placeholder="0" min="1" required style="padding: 12px 16px;">
+        </div>
+        
+        <div style="display: flex; gap: 12px; margin-top: 32px;">
+            <button type="submit" class="btn btn-success" style="padding: 12px 24px;">
+                <i class="fa-solid fa-circle-check" style="margin-right: 6px;"></i> Complete Sale
+            </button>
+            <a href="/dashboard" class="btn btn-icon-light" style="padding: 12px 24px; text-decoration: none; font-weight: 600; background: #f1f5f9; border: none; color: var(--text-dark);">
+                Back
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}
