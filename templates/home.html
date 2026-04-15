@@ -1,6 +1,121 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1>Pharmacy Warehouse Management System</h1>
-<p>Manage medicines, stock, sales, and predictions.</p>
+<style>
+    .hero-section {
+        text-align: center;
+        margin-bottom: 3rem;
+        padding-top: 2rem;
+    }
+    
+    .hero-title {
+        font-size: 3rem;
+        font-weight: 800;
+        margin-bottom: 1rem;
+        background: var(--gradient-1);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        line-height: 1.2;
+    }
+    
+    .hero-subtitle {
+        font-size: 1.2rem;
+        color: var(--text-muted);
+        max-width: 600px;
+        margin: 0 auto;
+    }
+    
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+    }
+    
+    .action-card {
+        padding: 2.5rem 2rem;
+        text-align: center;
+        border-radius: 20px;
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        text-decoration: none;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+        cursor: pointer;
+        background: linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.01) 100%);
+    }
+    
+    .action-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+        border-color: rgba(255, 255, 255, 0.2);
+    }
+    
+    .action-icon {
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 80px;
+        height: 80px;
+        border-radius: 25px;
+        background: rgba(255, 255, 255, 0.05);
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+        transition: transform 0.3s;
+    }
+    
+    .action-card:hover .action-icon {
+        transform: scale(1.1) rotate(5deg);
+    }
+    
+    .action-icon.blue { background: rgba(99, 102, 241, 0.1); color: #818cf8; }
+    .action-icon.green { background: rgba(16, 185, 129, 0.1); color: #34d399; }
+    .action-icon.pink { background: rgba(236, 72, 153, 0.1); color: #f472b6; }
+    .action-icon.orange { background: rgba(245, 158, 11, 0.1); color: #fbbf24; }
+    
+    .action-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: white;
+    }
+    
+    .action-desc {
+        font-size: 0.9rem;
+        color: var(--text-muted);
+        line-height: 1.5;
+    }
+</style>
+
+<div class="hero-section">
+    <h1 class="hero-title">Next-Gen Pharmacy Inventory</h1>
+    <p class="hero-subtitle">Intelligent tracking, real-time analytics, and machine learning predictions to optimize your pharmaceutical operations.</p>
+</div>
+
+<div class="dashboard-grid">
+    <a href="/medicines" class="glass-card action-card">
+        <div class="action-icon blue">📋</div>
+        <h3 class="action-title">Medicine Catalog</h3>
+        <p class="action-desc">Manage your complete medicine inventory, add new drugs, and monitor expiration dates.</p>
+    </a>
+    
+    <a href="/stock" class="glass-card action-card">
+        <div class="action-icon orange">📦</div>
+        <h3 class="action-title">Live Stock</h3>
+        <p class="action-desc">Track real-time stock levels and receive predictive alerts for potential shortages.</p>
+    </a>
+    
+    <a href="/add-sale" class="glass-card action-card">
+        <div class="action-icon pink">🛒</div>
+        <h3 class="action-title">Record Sales</h3>
+        <p class="action-desc">Process new transactions with automatic real-time stock reduction and validation.</p>
+    </a>
+    
+    <a href="/dashboard" class="glass-card action-card">
+        <div class="action-icon green">📊</div>
+        <h3 class="action-title">Analytics Dashboard</h3>
+        <p class="action-desc">Visualize sales trends and critical operational metrics through interactive charts.</p>
+    </a>
+</div>
+
 {% endblock %}

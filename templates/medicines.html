@@ -1,47 +1,71 @@
 {% extends "base.html" %}
 
 {% block content %}
-
-<h2 style="text-align:center; margin-top:20px;">Medicines List</h2>
-
-<table style="width:90%; margin:auto; border-collapse:collapse; margin-top:20px;">
-<tr style="background:#e3f2fd;">
-    <th style="padding:10px; border:1px solid #ccc;">ID</th>
-    <th style="padding:10px; border:1px solid #ccc;">Name</th>
-    <th style="padding:10px; border:1px solid #ccc;">Category</th>
-    <th style="padding:10px; border:1px solid #ccc;">Expiry Date</th>
-    <th style="padding:10px; border:1px solid #ccc;">Price</th>
-    <th style="padding:10px; border:1px solid #ccc;">Action</th>
-</tr>
-
-{% for med in medicines %}
-<tr style="text-align:center;">
-    <td style="padding:8px; border:1px solid #ddd;">{{ med[0] }}</td>
-    <td style="padding:8px; border:1px solid #ddd;">{{ med[1] }}</td>
-    <td style="padding:8px; border:1px solid #ddd;">{{ med[2] }}</td>
-    <td style="padding:8px; border:1px solid #ddd;">{{ med[3] }}</td>
-    <td style="padding:8px; border:1px solid #ddd;">₹ {{ med[4] }}</td>
-    <td style="padding:8px; border:1px solid #ddd;">
-        
-        <!-- Delete Button -->
-        <a href="/delete-medicine/{{ med[0] }}" 
-           style="color:white; background:#e74c3c; padding:5px 10px; 
-                  border-radius:5px; text-decoration:none;">
-           Delete
-        </a>
-
-    </td>
-</tr>
-{% endfor %}
-
-</table>
-
-<div style="text-align:center; margin-top:20px;">
-    <a href="/add-medicine" 
-       style="background:#2ecc71; color:white; padding:10px 15px; 
-              border-radius:6px; text-decoration:none;">
-        + Add New Medicine
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Medicine Database</h1>
+        <p class="page-subtitle">Manage your pharmaceutical product catalog</p>
+    </div>
+    <a href="/add-medicine" class="btn btn-primary" style="font-weight: 600;">
+        <i class="fa-solid fa-plus" style="margin-right: 4px;"></i> Add New Medicine
     </a>
 </div>
 
+<div class="card">
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th style="font-weight: 500;">ID</th>
+                    <th style="font-weight: 500;">Name</th>
+                    <th style="font-weight: 500;">Category</th>
+                    <th style="font-weight: 500;">Expiry Date</th>
+                    <th style="font-weight: 500;">Price</th>
+                    <th style="font-weight: 500;">Status</th>
+                    <th style="font-weight: 500;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if medicines %}
+                    {% for med in medicines %}
+                        <tr>
+                            <td style="color: var(--text-gray); font-weight: 500;">#{{ med[0] }}</td>
+                            <td>{{ med[1] }}</td>
+                            <td>
+                                <span class="status-pill pill-gray" style="font-size: 0.75rem;">
+                                    {{ med[2] }}
+                                </span>
+                            </td>
+                            <td style="color: var(--text-gray);">{{ med[3] }}</td>
+                            <td style="font-weight: 500;">${{ med[4] }}</td>
+                            <td>
+                                <!-- Currently python provides date string. A perfect match requires logic to check if expired. -->
+                                <!-- We will assume active unless we add complex Jinja date comparison -->
+                                <span class="status-pill pill-success" style="font-size: 0.75rem;">
+                                    Active
+                                </span>
+                            </td>
+                            <td>
+                                <div style="display: flex; gap: 8px;">
+                                    <button class="btn btn-icon-light" title="Edit">
+                                        <i class="fa-solid fa-pen-to-square"></i>
+                                    </button>
+                                    <a href="/delete-medicine/{{ med[0] }}" class="btn btn-icon-danger" title="Delete" onclick="return confirm('Delete this medicine?');">
+                                        <i class="fa-solid fa-trash-can"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 48px; color: var(--text-gray);">
+                            No medicines cataloged yet.
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
 {% endblock %}

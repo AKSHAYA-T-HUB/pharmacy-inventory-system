@@ -29,76 +29,7 @@ def get_connection():
 # ----------------------------
 @app.route("/")
 def home():
-    return """
-      <html>
-    <head>
-        <title>Pharmacy Warehouse</title>
-        <style>
-            body {
-                margin: 0;
-                font-family: Arial, sans-serif;
-                background: linear-gradient(135deg, #fdfbfb, #ebedee);
-                text-align: center;
-            }
-
-            h1 {
-                margin-top: 40px;
-                color: #2c3e50;
-            }
-
-            .container {
-                margin-top: 50px;
-                display: flex;
-                flex-wrap: wrap;
-                justify-content: center;
-                gap: 20px;
-            }
-
-            .card {
-                width: 220px;
-                padding: 20px;
-                border-radius: 12px;
-                text-decoration: none;
-                color: #2c3e50;
-                font-weight: bold;
-                box-shadow: 0px 4px 12px rgba(0,0,0,0.1);
-                transition: 0.2s;
-            }
-
-            .card:hover {
-                transform: scale(1.05);
-            }
-
-            .c1 { background: #e3f2fd; }
-            .c2 { background: #e8f5e9; }
-            .c3 { background: #fff3e0; }
-            .c4 { background: #fce4ec; }
-            .c5 { background: #ede7f6; }
-            .c6 { background: #f1f8e9; }
-            .c7 { background: #e0f7fa; }
-
-        </style>
-    </head>
-    <body>
-
-        <h1>💊 Pharmacy Warehouse Management System</h1>
-
-        <div class="container">
-            <a href="/medicines" class="card c1">📋 View Medicines</a>
-            <a href="/add-medicine" class="card c2">➕ Add Medicine</a>
-            <a href="/stock" class="card c3">📦 View Stock</a>
-            <a href="/add-stock" class="card c4">📥 Add Stock</a>
-            <a href="/add-sale" class="card c5">🛒 Add Sale</a>
-            <a href="/dashboard" class="card c6">📊 Dashboard</a>
-            <a href="/test-db" class="card c7">🔍 Test DB Connection</a>
-        </div>
-
-    </body>
-    </html>
-    
-
-    
-    """
+    return render_template("home.html")
 
 # ----------------------------
 # Test Database
@@ -117,9 +48,15 @@ def test_db():
 # ----------------------------
 @app.route("/medicines")
 def medicines():
+    q = request.args.get("q", "")
     conn = get_connection()
     cur = conn.cursor()
-    cur.execute("SELECT * FROM medicines;")
+    
+    if q:
+        cur.execute("SELECT * FROM medicines WHERE name ILIKE %s OR category ILIKE %s;", (f"%{q}%", f"%{q}%"))
+    else:
+        cur.execute("SELECT * FROM medicines;")
+        
     medicines = cur.fetchall()
     conn.close()
     return render_template("medicines.html", medicines=medicines)
@@ -154,14 +91,23 @@ def add_medicine():
 # ----------------------------
 @app.route("/stock")
 def stock():
+    q = request.args.get("q", "")
     conn = get_connection()
     cur = conn.cursor()
 
-    cur.execute("""
-        SELECT m.id, m.name, s.quantity, s.last_updated
-        FROM stock s
-        JOIN medicines m ON s.medicine_id = m.id;
-    """)
+    if q:
+        cur.execute("""
+            SELECT m.id, m.name, s.quantity, s.last_updated
+            FROM stock s
+            JOIN medicines m ON s.medicine_id = m.id
+            WHERE m.name ILIKE %s OR m.category ILIKE %s;
+        """, (f"%{q}%", f"%{q}%"))
+    else:
+        cur.execute("""
+            SELECT m.id, m.name, s.quantity, s.last_updated
+            FROM stock s
+            JOIN medicines m ON s.medicine_id = m.id;
+        """)
 
     stock_data = cur.fetchall()
     conn.close()
@@ -274,10 +220,12 @@ def dashboard():
                            total_sales=total_sales)
 
 # ----------------------------
-# Dashboard Chart (Safe)
+# Dashboard Chart Data (JSON)
 # ----------------------------
-@app.route("/dashboard-chart")
-def dashboard_chart():
+from flask import jsonify
+
+@app.route("/api/dashboard-chart")
+def api_dashboard_chart():
     conn = get_connection()
 
     query = """
@@ -289,30 +237,67 @@ def dashboard_chart():
     df = pd.read_sql(query, conn)
     conn.close()
 
-    plt.figure(figsize=(8,5))
+    if df.empty:
+        return jsonify({"labels": [], "data": []})
+
+    summary = df.groupby("name")["quantity"].sum()
+    return jsonify({
+        "labels": summary.index.tolist(),
+        "data": [int(x) for x in summary.values]
+    })
+
+# ----------------------------
+# Inventory Chart Data (JSON)
+# ----------------------------
+@app.route("/api/inventory-chart")
+def api_inventory_chart():
+    conn = get_connection()
+    df = pd.read_sql("SELECT quantity FROM stock", conn)
+    conn.close()
 
     if df.empty:
-        plt.text(0.5, 0.5, "No Sales Data Available",
-                 horizontalalignment='center',
-                 verticalalignment='center',
-                 fontsize=14)
-        plt.xticks([])
-        plt.yticks([])
-    else:
-        summary = df.groupby("name")["quantity"].sum()
-        summary.plot(kind="bar")
-        plt.xlabel("Medicine")
-        plt.ylabel("Total Sold")
+        return jsonify({"labels": [], "data": [], "colors": []})
 
-    plt.title("Sales by Medicine")
-    plt.tight_layout()
+    healthy = len(df[df['quantity'] > 50])
+    warning = len(df[(df['quantity'] > 20) & (df['quantity'] <= 50)])
+    critical = len(df[df['quantity'] <= 20])
 
-    img = io.BytesIO()
-    plt.savefig(img, format="png")
-    img.seek(0)
-    plt.close()
+    return jsonify({
+        "labels": ['Healthy', 'Low/Warning', 'Critical'],
+        "data": [healthy, warning, critical],
+        "colors": ['#10b981', '#f59e0b', '#ef4444']
+    })
 
-    return send_file(img, mimetype="image/png")
+# ----------------------------
+# Export Endpoints
+# ----------------------------
+@app.route("/export-stock")
+def export_stock():
+    conn = get_connection()
+    query = """
+        SELECT m.name as "Medicine", s.quantity as "Quantity", s.last_updated as "Last Updated"
+        FROM stock s
+        JOIN medicines m ON s.medicine_id = m.id
+    """
+    df = pd.read_sql(query, conn)
+    conn.close()
+    
+    csv_data = df.to_csv(index=False).encode('utf-8')
+    return send_file(io.BytesIO(csv_data), mimetype="text/csv", as_attachment=True, download_name="stock_report.csv")
+
+@app.route("/export-report")
+def export_report():
+    conn = get_connection()
+    query = """
+        SELECT m.name as "Medicine", s.quantity as "Quantity Sold", s.sale_date as "Sale Date"
+        FROM sales s
+        JOIN medicines m ON s.medicine_id = m.id
+    """
+    df = pd.read_sql(query, conn)
+    conn.close()
+    
+    csv_data = df.to_csv(index=False).encode('utf-8')
+    return send_file(io.BytesIO(csv_data), mimetype="text/csv", as_attachment=True, download_name="sales_report.csv")
 
 # ----------------------------
 # ML Prediction

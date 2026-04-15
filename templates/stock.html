@@ -1,93 +1,87 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Stock</title>
-    <style>
-        body {
-            font-family: Arial;
-            background-color: #f9fbfd;
-            text-align: center;
-        }
+{% extends "base.html" %}
 
-        table {
-            border-collapse: collapse;
-            width: 75%;
-            margin: 30px auto;
-            background: white;
-            box-shadow: 0px 4px 10px rgba(0,0,0,0.08);
-        }
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Stock Management</h1>
+        <p class="page-subtitle">Real-time inventory levels and tracking</p>
+    </div>
+    <div style="display: flex; gap: 12px;">
+        <a href="/export-stock" class="btn btn-outline" style="font-weight: 600; text-decoration: none;">
+            <i class="fa-solid fa-download" style="margin-right: 4px;"></i> Export CSV
+        </a>
+        <a href="/add-stock" class="btn btn-primary" style="font-weight: 600;">
+            <i class="fa-solid fa-boxes-stacked" style="margin-right: 4px;"></i> Update Stock
+        </a>
+    </div>
+</div>
 
-        th {
-            background-color: #e3f2fd;
-            padding: 12px;
-            border: 1px solid #ccc;
-        }
-
-        td {
-            padding: 10px;
-            border: 1px solid #ddd;
-        }
-
-        .low-stock {
-            background-color: #ffebee;
-        }
-
-        .delete-btn {
-            color: white;
-            background: #e74c3c;
-            padding: 5px 10px;
-            border-radius: 5px;
-            text-decoration: none;
-        }
-
-        .delete-btn:hover {
-            background: #c0392b;
-        }
-
-        .back-btn {
-            display: inline-block;
-            margin-top: 20px;
-            padding: 8px 15px;
-            background: #90caf9;
-            color: #2c3e50;
-            border-radius: 6px;
-            text-decoration: none;
-        }
-
-        .back-btn:hover {
-            background: #64b5f6;
-        }
-    </style>
-</head>
-<body>
-
-<h1>Stock Details</h1>
-
-<table>
-    <tr>
-        <th>Medicine ID</th>
-        <th>Medicine Name</th>
-        <th>Quantity</th>
-        <th>Last Updated</th>
-        <th>Action</th>
-    </tr>
-
-    {% for item in stock_data %}
-    <tr class="{% if item[2]|int < 20 %}low-stock{% endif %}">
-        <td>{{ item[0] }}</td>
-        <td>{{ item[1] }}</td>
-        <td>{{ item[2] }}</td>
-        <td>{{ item[3] }}</td>
-        <td>
-            <a href="/delete-stock/{{ item[0] }}" class="delete-btn">
-                Delete
-            </a>
-        </td>
-    </tr>
-    {% endfor %}
-</table>
-
-<a href="/" class="back-btn">⬅ Back to Home</a>
-
-</body>
-</html>
+<div class="card">
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th style="font-weight: 500;">Medicine</th>
+                    <th style="font-weight: 500;">Current Quantity</th>
+                    <th style="font-weight: 500;">Health Status</th>
+                    <th style="font-weight: 500;">Last Updated</th>
+                    <th style="font-weight: 500;">AI Prediction</th>
+                    <th style="font-weight: 500; text-align: center;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if stock_data %}
+                    {% for item in stock_data %}
+                        {% set qty_int = item[2]|int %}
+                        <tr>
+                            <td style="color: var(--text-dark); font-weight: 500;">{{ item[1] }}</td>
+                            <td>
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <span style="font-size: 0.9rem; color: var(--text-gray); min-width: 60px;">{{ item[2] }} units</span>
+                                    <div style="background: var(--border); width: 80px; height: 4px; border-radius: 2px; overflow: hidden;">
+                                        <!-- Mock progress % calculation (if max is 200 units) -->
+                                        {% set percent = (qty_int / 150) * 100 %}
+                                        {% set pcolor = "var(--success)" %}
+                                        {% if qty_int == 0 %}{% set pcolor = "var(--border)" %}{% set percent = 100 %}
+                                        {% elif qty_int <= 20 %}{% set pcolor = "var(--danger)" %}
+                                        {% elif qty_int <= 50 %}{% set pcolor = "var(--warning)" %}{% endif %}
+                                        <div style="width: {{ percent if percent <= 100 else 100 }}%; height: 100%; background: {{ pcolor }};"></div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                {% if qty_int == 0 %}
+                                    <span class="status-pill pill-danger" style="font-size: 0.75rem;">Critical</span>
+                                {% elif qty_int <= 20 %}
+                                    <span class="status-pill pill-danger" style="font-size: 0.75rem;">Critical</span>
+                                {% elif qty_int <= 50 %}
+                                    <span class="status-pill pill-warning" style="font-size: 0.75rem;">Low</span>
+                                {% else %}
+                                    <span class="status-pill pill-success" style="font-size: 0.75rem;">Healthy</span>
+                                {% endif %}
+                            </td>
+                            <td style="color: var(--text-dark); font-size: 0.9rem;">{{ item[3] }}</td>
+                            <td>
+                                <a href="/predict/{{ item[0] }}" class="btn" style="background: var(--primary-light); color: var(--primary); font-size: 0.8rem; padding: 6px 12px;">
+                                    <i class="fa-solid fa-circle-half-stroke" style="font-size: 0.8em; margin-right: 4px;"></i> Predict
+                                </a>
+                            </td>
+                            <td style="text-align: center;">
+                                <a href="/add-sale" class="btn-icon-light" style="border: none; background: transparent; color: var(--primary);" title="To Sales">
+                                    <i class="fa-solid fa-cart-shopping"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 48px; color: var(--text-gray);">
+                            No stock recorded.
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
