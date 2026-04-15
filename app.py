@@ -1,3 +1,4 @@
+import os
 from flask import Flask, render_template, request, redirect, send_file
 import psycopg2
 from datetime import date
@@ -20,7 +21,7 @@ def get_connection():
         dbname="pharmacy_db",
         user="postgres",
         password="Akshaya@2006",  # Change if needed
-        host="localhost",
+        host=os.environ.get("PGHOST", "localhost"),
         port="5432"
     )
 
