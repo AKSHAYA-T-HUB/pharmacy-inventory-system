@@ -17,13 +17,12 @@ app = Flask(__name__)
 # Database Connection
 # ----------------------------
 def get_connection():
-    return psycopg2.connect(
-        dbname="pharmacy_db",
-        user="postgres",
-        password="Akshaya@2006",  # Change if needed
-        host=os.environ.get("PGHOST", "localhost"),
-        port="5432"
-    )
+    url = os.getenv("DATABASE_URL")
+    if url.startswith("postgres://"):
+        url = url.replace("postgres://", "postgresql://", 1)
+    return psycopg2.connect(url)
+    
+    
 
 # ----------------------------
 # Home Page
