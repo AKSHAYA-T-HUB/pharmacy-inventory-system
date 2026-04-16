@@ -1,4 +1,3 @@
-import os
 from flask import Flask, render_template, request, redirect, send_file
 import psycopg2
 from datetime import date
@@ -17,23 +16,13 @@ app = Flask(__name__)
 # Database Connection
 # ----------------------------
 def get_connection():
-    try:
-        url = os.getenv("DATABASE_URL")
-        print("DATABASE_URL:", url)
-
-        if url.startswith("postgres://"):
-            url = url.replace("postgres://", "postgresql://", 1)
-
-        conn = psycopg2.connect(url, sslmode='require')
-        print("✅ DB Connected")
-        return conn
-
-    except Exception as e:
-        print("❌ DB ERROR:", e)
-        raise
-
-    
-    
+    return psycopg2.connect(
+        dbname="pharmacy_db",
+        user="postgres",
+        password="Akshaya@2006",  # Change if needed
+        host="localhost",
+        port="5432"
+    )
 
 # ----------------------------
 # Home Page
@@ -59,15 +48,18 @@ def test_db():
 # ----------------------------
 @app.route("/medicines")
 def medicines():
-    try:
-        conn = get_connection()
-        cur = conn.cursor()
+    q = request.args.get("q", "")
+    conn = get_connection()
+    cur = conn.cursor()
+    
+    if q:
+        cur.execute("SELECT * FROM medicines WHERE name ILIKE %s OR category ILIKE %s;", (f"%{q}%", f"%{q}%"))
+    else:
         cur.execute("SELECT * FROM medicines;")
-        data = cur.fetchall()
-        return str(data)
-
-    except Exception as e:
-        return f"ERROR: {e}"
+        
+    medicines = cur.fetchall()
+    conn.close()
+    return render_template("medicines.html", medicines=medicines)
 
 # ----------------------------
 # Add Medicine
