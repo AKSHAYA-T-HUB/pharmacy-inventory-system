@@ -59,18 +59,15 @@ def test_db():
 # ----------------------------
 @app.route("/medicines")
 def medicines():
-    q = request.args.get("q", "")
-    conn = get_connection()
-    cur = conn.cursor()
-    
-    if q:
-        cur.execute("SELECT * FROM medicines WHERE name ILIKE %s OR category ILIKE %s;", (f"%{q}%", f"%{q}%"))
-    else:
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
         cur.execute("SELECT * FROM medicines;")
-        
-    medicines = cur.fetchall()
-    conn.close()
-    return render_template("medicines.html", medicines=medicines)
+        data = cur.fetchall()
+        return str(data)
+
+    except Exception as e:
+        return f"ERROR: {e}"
 
 # ----------------------------
 # Add Medicine
