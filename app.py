@@ -17,10 +17,21 @@ app = Flask(__name__)
 # Database Connection
 # ----------------------------
 def get_connection():
-    url = os.getenv("DATABASE_URL")
-    if url.startswith("postgres://"):
-        url = url.replace("postgres://", "postgresql://", 1)
-    return psycopg2.connect(url)
+    try:
+        url = os.getenv("DATABASE_URL")
+        print("DATABASE_URL:", url)
+
+        if url.startswith("postgres://"):
+            url = url.replace("postgres://", "postgresql://", 1)
+
+        conn = psycopg2.connect(url, sslmode='require')
+        print("✅ DB Connected")
+        return conn
+
+    except Exception as e:
+        print("❌ DB ERROR:", e)
+        raise
+
     
     
 
